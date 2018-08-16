@@ -13,7 +13,7 @@
         <v-flex xs12 sm4>
         </v-flex>
         <v-flex xs12 sm5>
-          <v-text-field  v-model="textMessage" solo label="Type Message"></v-text-field>
+          <v-text-field  v-model="message" solo label="Type Message"></v-text-field>
         </v-flex>
         <v-flex xs12 sm3 style="text-align: left">
           <v-btn color="primary" @click="getIntent()" :disabled="isLoading">Submit</v-btn>
@@ -41,6 +41,11 @@
         </v-flex>
         <v-flex xs12 sm5>
           <v-card>
+          <v-card-title primary-title>
+            <div>
+              <div class="headline"><h4>Is one of followings contains your "Intent"?</h4></div>
+            </div>
+          </v-card-title>
           <v-radio-group v-model="selectedIntent" column style="padding: 10px;">
             <template v-for="intent in intents">
               <v-radio
@@ -62,6 +67,11 @@
         </v-flex>
         <v-flex xs12 sm5>
           <v-card>
+          <v-card-title primary-title>
+            <div>
+              <div class="headline"><h4>Is one of followings contains your "Entity"?</h4></div>
+            </div>
+          </v-card-title>
           <v-radio-group v-model="selectedEntity" column style="padding: 10px;">
             <template v-for="entity in entities">
               <v-radio
@@ -82,7 +92,14 @@
         <v-flex xs12 sm4>
         </v-flex>
         <v-flex xs12 sm5>
-          <v-text-field  v-model="responseMessage" solo-inverted readonly></v-text-field>
+          <span><b>Response Message</b></span>
+        </v-flex>
+      </v-layout>
+      <v-layout row wrap v-if="isFirstCase">
+        <v-flex xs12 sm4>
+        </v-flex>
+        <v-flex xs12 sm5>
+          <v-text-field  v-model="responseMessage" solo-inverted readonly label="Your product or service"></v-text-field>
         </v-flex>
         <v-flex xs12 sm3 style="text-align: left">
           <v-btn color="primary" @click="clearMessage()">Reset</v-btn>
@@ -96,7 +113,7 @@ export default {
   name: 'Demo',
   data () {
     return {
-      textMessage: '',
+      message: '',
       selectedIntent: '',
       selectedEntity: '',
       moreEntities: false,
@@ -115,7 +132,7 @@ export default {
     clearMessage () {
       this.isLoading = false
       this.responseMessage = ''
-      this.textMessage = ''
+      this.message = ''
       this.isFirstCase = false
       this.isSecondCase = false
       this.isThirdCase = false
@@ -125,14 +142,24 @@ export default {
     },
     callEntity () {
       this.isLoading = true
-      api.getIntent(this.message).then(response => {
+      api.getEntity(this.message).then(response => {
         this.entityId = response.id
         if (response.hasOwnProperty('id') && response.hasOwnProperty('message') && response.hasOwnProperty('id_array')) {
           this.isThirdCase = true
           this.isLoading = false
           this.moreEntities = true
           this.entities = response.id_array
-        }
+        } else {
+          this.entityId = response.id
+          this.intentId = this.selectedIntent
+          api.getResponse(this.intentId, this.entityId).then(response => {
+            this.responseMessage = response
+            this.isLoading = false
+            this.isFirstCase = true
+          }, error => {
+            this.responseMessage = error
+          })
+    }
       })
     },
     callResponse () {
