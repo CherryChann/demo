@@ -142,25 +142,38 @@ export default {
     },
     callEntity () {
       this.isLoading = true
-      api.getEntity(this.message).then(response => {
-        this.entityId = response.id
-        if (response.hasOwnProperty('id') && response.hasOwnProperty('message') && response.hasOwnProperty('id_array')) {
-          this.isThirdCase = true
+      if (this.selectedIntent === -1) {
+        this.intentId = this.selectedIntent
+        this.entityId = -1 // assume there is no entity as well
+        api.getResponse(this.intentId, this.entityId).then(response => {
+          this.responseMessage = response
           this.isLoading = false
-          this.moreEntities = true
-          this.entities = response.id_array
-        } else {
-          this.entityId = response.id
-          this.intentId = this.selectedIntent
-          api.getResponse(this.intentId, this.entityId).then(response => {
-            this.responseMessage = response
-            this.isLoading = false
-            this.isFirstCase = true
-          }, error => {
-            this.responseMessage = error
+          this.isFirstCase = true
+        }, error => {
+          this.responseMessage = error
           })
-    }
-      })
+      } else {
+        api.getEntity(this.message).then(response => {
+          this.entityId = response.id
+          if (response.hasOwnProperty('id') && response.hasOwnProperty('message') && response.hasOwnProperty('id_array')) {
+            this.isThirdCase = true
+            this.isLoading = false
+            this.moreEntities = true
+            this.entities = response.id_array
+          } else {
+            this.entityId = response.id
+            this.intentId = this.selectedIntent
+            api.getResponse(this.intentId, this.entityId).then(response => {
+              this.responseMessage = response
+              this.isLoading = false
+              this.isFirstCase = true
+            }, error => {
+              this.responseMessage = error
+            })
+          }
+        })
+      }
+      
     },
     callResponse () {
       this.isLoading = true
